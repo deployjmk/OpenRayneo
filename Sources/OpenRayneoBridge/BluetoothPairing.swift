@@ -37,7 +37,7 @@ extension PairedGlasses {
             guard process.terminationStatus == 0,
                   let report = try JSONSerialization.jsonObject(with: data) as? [String: Any],
                   let controllers = report["SPBluetoothDataType"] as? [[String: Any]] else {
-                throw PairingError(message: "读取系统蓝牙设备失败，请打开蓝牙设置后重试。")
+                throw PairingError(message: "Failed to read system Bluetooth devices; open Bluetooth settings and retry.")
             }
             var result: [PairedGlasses] = []
             for controller in controllers {
@@ -75,14 +75,14 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
         defer { stopDiscovery(); dismissAlert() }
         let target: PairedGlasses
         central = CBCentralManager(delegate: self, queue: .main, options: [CBCentralManagerOptionShowPowerAlertKey: false])
-        progress("等待蓝牙就绪", "如 macOS 询问蓝牙权限，请允许 OpenRayneo。")
+        progress("Waiting for Bluetooth", "If macOS asks for Bluetooth permission, allow OpenRayneo.")
         let deadline = Date().addingTimeInterval(90)
         while central?.state != .poweredOn {
             try checkState()
-            guard Date() < deadline else { throw PairingError(message: "等待系统蓝牙超时，请处理权限弹窗后重试。") }
+            guard Date() < deadline else { throw PairingError(message: "Timed out waiting for system Bluetooth; resolve the permission prompt and retry.") }
             try await Task.sleep(nanoseconds: 100_000_000)
         }
-        progress("正在寻找眼镜", "请保持眼镜处于配对模式、手机蓝牙关闭。")
+        progress("Looking for glasses", "Keep the glasses in pairing mode and your phone Bluetooth off.")
         scanning = true
         central?.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
         let scanStart = Date()
@@ -91,32 +91,32 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
             try await Task.sleep(nanoseconds: 200_000_000)
         }
         stopDiscovery()
-        guard !candidates.isEmpty else { throw PairingError(message: "未发现眼镜广播。请退出后重新进入眼镜配对模式，再点一次添加；不要连续重试。") }
+        guard !candidates.isEmpty else { throw PairingError(message: "No advertisement from the glasses. Exit, re-enter the glasses pairing mode, and click Add once more; do not retry repeatedly.") }
         if candidates.count == 1 { target = candidates[0] }
         else {
             let prompt = NSAlert()
-            prompt.messageText = "选择要配对的眼镜"
+            prompt.messageText = "Choose glasses to pair"
             let picker = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 320, height: 28))
             picker.addItems(withTitles: candidates.map { "\($0.name) · \($0.id.suffix(5))" })
             prompt.accessoryView = picker
-            prompt.addButton(withTitle: "继续")
-            prompt.addButton(withTitle: "取消")
+            prompt.addButton(withTitle: "Continue")
+            prompt.addButton(withTitle: "Cancel")
             guard await show(prompt) == .alertFirstButtonReturn else { return nil }
             target = candidates[picker.indexOfSelectedItem]
         }
         try checkState()
-        progress("清除 Mac 旧配对", "正在移除 \(target.name) 的本地配对记录。请保持眼镜当前状态，不要同时操作系统蓝牙设置。")
+        progress("Removing old Mac pairing", "Removing the local pairing record for \(target.name). Leave the glasses as they are; do not touch Bluetooth settings meanwhile.")
         _ = try await runHelper(["--unpair", target.id], timeout: 15)
-        progress("确认配对已清除", "正在独立确认眼镜在 Mac 上已未配对、未连接。")
+        progress("Confirming pairing removed", "Independently confirming the glasses are unpaired and disconnected on this Mac.")
         let clean = try await pairingState(target.id)
         guard !clean.paired, !clean.connected else {
-            throw PairingError(message: "Mac 仍保留配对或连接，已停止，未发起新配对。请在系统蓝牙设置中忽略目标眼镜后再试。")
+            throw PairingError(message: "The Mac still has a pairing or connection; stopped without starting a new pairing. Remove the glasses in Bluetooth settings and try again.")
         }
-        progress("正在配对眼镜", "正在与 \(target.name) 建立新配对。请勿同时在系统设置中忽略设备或重新进入眼镜配对模式。")
+        progress("Pairing glasses", "Creating a new pairing with \(target.name). Do not remove the device in System Settings or re-enter the glasses pairing mode meanwhile.")
         _ = try await runHelper(["--pair", target.id], timeout: 35)
-        progress("确认系统配对", "配对助手已退出，正在独立确认配对记录。")
+        progress("Confirming system pairing", "The pairing assistant exited; independently confirming the pairing record.")
         guard try await pairingState(target.id).paired else {
-            throw PairingError(message: "配对助手已结束，但 Mac 没有保存配对。请停止操作系统蓝牙设置，检查眼镜状态后再试。")
+            throw PairingError(message: "The pairing assistant finished, but the Mac saved no pairing. Stop touching Bluetooth settings, check the glasses, and try again.")
         }
         try checkState()
         return target
@@ -127,7 +127,7 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
         guard let state = try JSONSerialization.jsonObject(with: Data(output.utf8)) as? [String: Any],
               let paired = state["isPaired"] as? Bool,
               let connected = state["isConnected"] as? Bool else {
-            throw PairingError(message: "无法读取系统配对状态。")
+            throw PairingError(message: "Unable to read the system pairing state.")
         }
         return (paired, connected)
     }
@@ -164,7 +164,7 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
             let deadline = Date().addingTimeInterval(timeout)
             while child.isRunning {
                 try checkState()
-                guard Date() < deadline else { throw PairingError(message: "配对助手超时，已停止；请检查眼镜状态后再试。") }
+                guard Date() < deadline else { throw PairingError(message: "The pairing assistant timed out and stopped; check the glasses and try again.") }
                 try await Task.sleep(nanoseconds: 100_000_000)
             }
             dismissAlert()
@@ -172,7 +172,7 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
             helper = nil
             try checkState()
             guard child.terminationStatus == 0 else {
-                throw PairingError(message: "配对未完成（\(child.terminationStatus)）。\n\(text.trimmingCharacters(in: .whitespacesAndNewlines))")
+                throw PairingError(message: "Pairing did not complete (exit \(child.terminationStatus)).\n\(text.trimmingCharacters(in: .whitespacesAndNewlines))")
             }
             return text
         } catch {
@@ -197,22 +197,22 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
         let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 220, height: 24))
         switch event {
         case "confirmation":
-            prompt.messageText = "核对眼镜配对数字"
-            prompt.informativeText = "仅当眼镜上的数字与下方一致时，点击配对。"
+            prompt.messageText = "Verify the glasses pairing number"
+            prompt.informativeText = "Click Pair only if the number on the glasses matches the one below."
             prompt.accessoryView = NSTextField(labelWithString: object["value"] ?? "")
-            prompt.addButton(withTitle: "配对")
+            prompt.addButton(withTitle: "Pair")
         case "pin":
-            prompt.messageText = "输入眼镜蓝牙 PIN"
-            prompt.informativeText = "请输入眼镜提示的 PIN。"
+            prompt.messageText = "Enter the glasses Bluetooth PIN"
+            prompt.informativeText = "Enter the PIN shown on the glasses."
             prompt.accessoryView = field
-            prompt.addButton(withTitle: "提交")
+            prompt.addButton(withTitle: "Submit")
         case "passkey":
-            prompt.messageText = "在眼镜上输入配对码"
+            prompt.messageText = "Enter the pairing code on the glasses"
             prompt.accessoryView = NSTextField(labelWithString: object["value"] ?? "")
-            prompt.addButton(withTitle: "完成")
+            prompt.addButton(withTitle: "Done")
         default: return
         }
-        prompt.addButton(withTitle: "取消")
+        prompt.addButton(withTitle: "Cancel")
         let accepted = await show(prompt) == .alertFirstButtonReturn
         guard !cancelled, helper === child, child.isRunning else { return }
         if !accepted { cancel(); return }
@@ -224,9 +224,9 @@ final class BluetoothPairing: NSObject, @preconcurrency CBCentralManagerDelegate
         try Task.checkCancellation()
         if cancelled { throw CancellationError() }
         switch central?.state {
-        case .unauthorized: throw PairingError(message: "请在系统隐私设置中允许 OpenRayneo 访问蓝牙。")
-        case .poweredOff: throw PairingError(message: "Mac 蓝牙已关闭，请打开蓝牙后重试。")
-        case .unsupported: throw PairingError(message: "这台 Mac 不支持所需的蓝牙连接。")
+        case .unauthorized: throw PairingError(message: "Allow OpenRayneo to access Bluetooth in Privacy & Security settings.")
+        case .poweredOff: throw PairingError(message: "Mac Bluetooth is off; turn it on and retry.")
+        case .unsupported: throw PairingError(message: "This Mac does not support the required Bluetooth connection.")
         default: break
         }
     }

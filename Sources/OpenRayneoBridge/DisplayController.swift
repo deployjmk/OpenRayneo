@@ -44,7 +44,7 @@ final class DisplayController {
     }
 
     func updateSpeechText(_ text: String) throws {
-        _ = try route(method: "POST", path: "/v1/prompts/text", body: ["text": "实时语音识别", "translation": text, "final": true], forSpeech: true)
+        _ = try route(method: "POST", path: "/v1/prompts/text", body: ["text": "Live speech recognition", "translation": text, "final": true], forSpeech: true)
     }
 
     func stopSpeechDisplay() throws {

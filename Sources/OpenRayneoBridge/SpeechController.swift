@@ -398,7 +398,7 @@ final class SpeechController {
         let stereo: AVAudioPCMBuffer?
         do {
             if !virtualMicrophones.isEmpty, stereoDecoder?.encodedChannels(audio) != 2 {
-                error = "眼镜暂未提供双声道音频，麦克风页面已保留；可以重新进入麦克风模式。"
+                error = "The glasses are not providing two-channel audio yet; the microphone page is kept open; you can re-enter microphone mode."
                 decodeErrors += 1
                 return
             }

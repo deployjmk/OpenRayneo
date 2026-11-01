@@ -6,7 +6,7 @@ import AVFoundation
 import CoreImage
 
 enum TextVideoStyle: String, CaseIterable, Identifiable, Sendable {
-    case fullWidth = "全角灰度 26×7", blocks = "方块", halfBlocks = "半格方块（实验）"
+    case fullWidth = "Full-width gray 26×7", blocks = "Blocks", halfBlocks = "Half blocks (experimental)"
     var id: String { rawValue }
     var firstCellPadding: String { "\u{3000}" }
 
@@ -72,11 +72,11 @@ struct TextVideo: Sendable {
             defer { if scoped { url.stopAccessingSecurityScopedResource() } }
             let asset = AVURLAsset(url: url)
             guard let track = try await asset.loadTracks(withMediaType: .video).first else {
-                throw NSError(domain: "TextVideo", code: 1, userInfo: [NSLocalizedDescriptionKey: "文件没有可读取的视频轨道。"])
+                throw NSError(domain: "TextVideo", code: 1, userInfo: [NSLocalizedDescriptionKey: "The file has no readable video track."])
             }
             let duration = CMTimeGetSeconds(try await asset.load(.duration))
             guard duration.isFinite, duration > 0, duration <= 600 else {
-                throw NSError(domain: "TextVideo", code: 2, userInfo: [NSLocalizedDescriptionKey: "请选择不超过 10 分钟的本地视频。"])
+                throw NSError(domain: "TextVideo", code: 2, userInfo: [NSLocalizedDescriptionKey: "Choose a local video of 10 minutes or less."])
             }
             let transform = try await track.load(.preferredTransform)
             let reader = try AVAssetReader(asset: asset)
@@ -84,7 +84,7 @@ struct TextVideo: Sendable {
             output.alwaysCopiesSampleData = false
             reader.add(output)
             guard reader.startReading() else {
-                throw reader.error ?? NSError(domain: "TextVideo", code: 3, userInfo: [NSLocalizedDescriptionKey: "无法启动视频解码。"])
+                throw reader.error ?? NSError(domain: "TextVideo", code: 3, userInfo: [NSLocalizedDescriptionKey: "Unable to start video decoding."])
             }
             defer { reader.cancelReading() }
             let context = CIContext(options: [.cacheIntermediates: false])
@@ -120,7 +120,7 @@ struct TextVideo: Sendable {
             }
             try Task.checkCancellation()
             if reader.status == .failed { throw reader.error ?? NSError(domain: "TextVideo", code: 3) }
-            guard !frames.isEmpty else { throw NSError(domain: "TextVideo", code: 4, userInfo: [NSLocalizedDescriptionKey: "未能解码视频画面。"] ) }
+            guard !frames.isEmpty else { throw NSError(domain: "TextVideo", code: 4, userInfo: [NSLocalizedDescriptionKey: "Unable to decode video frames."] ) }
             return TextVideo(name: url.lastPathComponent, frames: frames, duration: max(duration, frames.last!.seconds + 0.1))
         }
         return try await withTaskCancellationHandler { try await worker.value } onCancel: { worker.cancel() }

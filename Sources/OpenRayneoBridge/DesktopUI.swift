@@ -5,7 +5,7 @@ import AppKit
 import SwiftUI
 
 private enum ControlPage: String, CaseIterable, Identifiable {
-    case setup = "设备与 API", navigation = "导航演示", video = "字符视频", text = "文字显示", notification = "通知", teleprompter = "提词器", audio = "语音与录音"
+    case setup = "Devices & API", navigation = "Navigation demo", video = "Character video", text = "Text display", notification = "Notification", teleprompter = "Teleprompter", audio = "Speech & Recording"
     var id: String { rawValue }
     var icon: String {
         switch self {
@@ -31,12 +31,12 @@ private struct DesktopControlView: View {
     @State private var invertVideo = false
     @State private var enhanceVideoContrast = false
     @State private var alignVideoUpdates = true
-    @State private var caption = "你好，OpenRayneo。\n这段文字来自 Mac 控制面板。"
+    @State private var caption = "Hello, OpenRayneo.\nThis text comes from the Mac control panel."
     @State private var answer = ""
     @State private var usePrompt = true
     @State private var notificationTitle = "OpenRayneo"
-    @State private var notificationBody = "来自 Mac 的通知"
-    @State private var scriptTitle = "我的提词稿"
+    @State private var notificationBody = "Notification from your Mac"
+    @State private var scriptTitle = "My script"
     @State private var scriptText = ""
     @State private var scriptSpeed = 60
     @State private var locale = "zh-CN"
@@ -54,12 +54,12 @@ private struct DesktopControlView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(page.rawValue).font(.title2.weight(.semibold))
-                        Text(bridge.activeSession.map { "当前功能：\($0.title)" } ?? "准备好后发送到眼镜")
+                        Text(bridge.activeSession.map { "Active session: \($0.title)" } ?? "Ready to send to the glasses")
                             .font(.callout).foregroundStyle(.secondary)
                     }
                     Spacer()
                     if bridge.activeSession != nil {
-                        Button("结束当前功能", systemImage: "stop.fill") { bridge.stopSession() }.disabled(unavailable)
+                        Button("End session", systemImage: "stop.fill") { bridge.stopSession() }.disabled(unavailable)
                     }
                 }
                 if let error = bridge.errorMessage {
@@ -101,34 +101,34 @@ private struct DesktopControlView: View {
                 Text(bridge.phase).font(.callout)
             }
             VStack(alignment: .leading, spacing: 8) {
-                Text(bridge.refreshingDevices ? "正在读取已配对设备…" : "已配对眼镜").font(.caption).foregroundStyle(.secondary)
-                Picker("眼镜", selection: $bridge.selectedAddress) {
-                    if bridge.devices.isEmpty { Text("尚未找到眼镜").tag("") }
+                Text(bridge.refreshingDevices ? "Reading paired devices…" : "Paired glasses").font(.caption).foregroundStyle(.secondary)
+                Picker("Glasses", selection: $bridge.selectedAddress) {
+                    if bridge.devices.isEmpty { Text("No glasses found").tag("") }
                     ForEach(bridge.devices) { Text("\($0.name) · \($0.id.suffix(5))").tag($0.id) }
                 }.labelsHidden().disabled(bridge.serviceRunning || unavailable)
                 HStack {
-                    Button("刷新", systemImage: "arrow.clockwise") { bridge.refreshDevices() }
+                    Button("Refresh", systemImage: "arrow.clockwise") { bridge.refreshDevices() }
                         .disabled(bridge.serviceRunning || bridge.refreshingDevices || unavailable)
-                    Button("蓝牙设置") { bridge.openBluetoothSettings() }
+                    Button("Bluetooth Settings") { bridge.openBluetoothSettings() }
                 }.controlSize(.small)
-                Button("添加并配对眼镜") { page = .setup; bridge.pairAndConnect() }
+                Button("Add & Pair Glasses") { page = .setup; bridge.pairAndConnect() }
                     .disabled(unavailable || bridge.refreshingDevices)
                 if bridge.serviceRunning {
                     if !bridge.connected {
-                        Button("重新连接") { bridge.connect() }.disabled(unavailable)
+                        Button("Reconnect") { bridge.connect() }.disabled(unavailable)
                     }
-                    Button(bridge.stopping ? "正在断开…" : "断开连接") { bridge.disconnect() }.disabled(bridge.stopping)
+                    Button(bridge.stopping ? "Disconnecting…" : "Disconnect") { bridge.disconnect() }.disabled(bridge.stopping)
                 } else {
-                    Button("连接眼镜") { bridge.connect() }
+                    Button("Connect Glasses") { bridge.connect() }
                         .buttonStyle(.borderedProminent).disabled(bridge.selectedAddress.isEmpty || unavailable)
                 }
             }
-            Button(bridge.activeSession == .prompts ? "重新进入麦克风模式" : "进入麦克风模式", systemImage: "mic") {
+            Button(bridge.activeSession == .prompts ? "Re-enter Microphone Mode" : "Enter Microphone Mode", systemImage: "mic") {
                 bridge.enterMicrophoneMode()
             }.disabled(unavailable || bridge.selectedAddress.isEmpty)
             if bridge.microphoneForwarding {
-                Label(bridge.microphoneRecovering ? "麦克风正在恢复" : bridge.microphoneAudioState == "waiting" ? "等待眼镜音频" : "两路麦克风已开启", systemImage: "mic.fill").font(.caption)
-                Text(String(format: "已接收 %.1f 秒音频", bridge.audioSeconds))
+                Label(bridge.microphoneRecovering ? "Microphone recovering" : bridge.microphoneAudioState == "waiting" ? "Waiting for glasses audio" : "Both microphones active", systemImage: "mic.fill").font(.caption)
+                Text(String(format: "Audio received: %.1f s", bridge.audioSeconds))
                     .font(.caption).monospacedDigit().foregroundStyle(.secondary)
             }
             Divider()
@@ -140,7 +140,7 @@ private struct DesktopControlView: View {
                 }.buttonStyle(.plain)
             }
             Spacer()
-            Text("手机占用连接时，请先关闭手机蓝牙。")
+            Text("If your phone holds the connection, turn off the phone Bluetooth first.")
                 .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }.padding(18).frame(width: 240).frame(maxHeight: .infinity)
             .background(Color(nsColor: .windowBackgroundColor))
@@ -148,52 +148,52 @@ private struct DesktopControlView: View {
 
     private var setupPanel: some View {
         VStack(alignment: .leading, spacing: 20) {
-            setupStep(number: 1, title: "发现并配对", complete: bridge.verifiedPairingAddress == bridge.selectedAddress,
-                      detail: bridge.selectedDevice.map { "已选择 \($0.name)" } ?? "让眼镜进入配对模式，点击下方按钮发现并配对。")
+            setupStep(number: 1, title: "Discover & pair", complete: bridge.verifiedPairingAddress == bridge.selectedAddress,
+                      detail: bridge.selectedDevice.map { "Selected \($0.name)" } ?? "Put the glasses in pairing mode, then click the button below to discover and pair.")
             HStack {
-                Button("添加并配对眼镜", systemImage: "plus") { bridge.pairAndConnect() }
+                Button("Add & Pair Glasses", systemImage: "plus") { bridge.pairAndConnect() }
                     .disabled(unavailable || bridge.refreshingDevices)
-                Text("先清除目标眼镜在 Mac 上的旧配对，再配对并启用 API。").font(.caption).foregroundStyle(.secondary)
+                Text("Removes the glasses old Mac pairing, then pairs and enables the API.").font(.caption).foregroundStyle(.secondary)
             }
             if bridge.pairingActive {
-                Text("请保持眼镜开机、手机蓝牙关闭。开始后不要同时忽略 Mac 配对或重新进入眼镜配对模式；如弹出数字，请核对。")
+                Text("Keep the glasses powered on and the phone Bluetooth off. After starting, do not remove the Mac pairing or re-enter the glasses pairing mode; if a number appears, verify it.")
                     .font(.callout).foregroundStyle(.secondary)
                 HStack {
-                    Button("取消配对流程") { bridge.cancelPairing() }
+                    Button("Cancel pairing") { bridge.cancelPairing() }
                 }
             }
             Divider()
-            setupStep(number: 2, title: "连接眼镜", complete: bridge.connected,
-                      detail: bridge.connected ? "蓝牙认证与数据通道已建立。" : "已配对的眼镜可直接连接；后台服务和鉴权令牌会自动准备。")
-            Button(bridge.connected ? "已连接" : "连接并启用 API", systemImage: "bolt.horizontal") { bridge.connect() }
+            setupStep(number: 2, title: "Connect the glasses", complete: bridge.connected,
+                      detail: bridge.connected ? "Bluetooth authentication and the data channel are established." : "A paired glasses connects directly; the background service and auth token are prepared automatically.")
+            Button(bridge.connected ? "Connected" : "Connect & Enable API", systemImage: "bolt.horizontal") { bridge.connect() }
                 .buttonStyle(.borderedProminent).disabled(bridge.connected || bridge.selectedAddress.isEmpty || unavailable)
-            Button(bridge.restartingService ? "正在重启连接服务…" : "重启连接服务", systemImage: "arrow.clockwise") {
+            Button(bridge.restartingService ? "Restarting connection service…" : "Restart Connection Service", systemImage: "arrow.clockwise") {
                 bridge.restartConnectionService()
             }
             .disabled(bridge.selectedAddress.isEmpty || bridge.stopping || bridge.restartingService || bridge.pairingActive || bridge.refreshingDevices)
-            Text("连接卡住时可重启服务，窗口保持打开、系统配对保留。当前显示或录音会话会结束，API 地址和令牌可能更新。")
+            Text("Restart the service if the connection stalls; the window stays open and the system pairing is kept. Active display or recording sessions end, and the API address and token may change.")
                 .font(.caption).foregroundStyle(.secondary)
             Divider()
             microphoneSettings
             Divider()
-            setupStep(number: 3, title: "本机 API", complete: bridge.apiReady,
-                      detail: bridge.apiReady ? "健康检查和带令牌的设备查询已通过。" : bridge.serviceRunning ? "服务已启动，正在等待眼镜连接或 API 检查。" : "连接完成后，即可复制地址与调用命令。")
+            setupStep(number: 3, title: "Local API", complete: bridge.apiReady,
+                      detail: bridge.apiReady ? "Health check and token-authenticated device query passed." : bridge.serviceRunning ? "Service started; waiting for the glasses to connect or for the API check." : "After connecting, you can copy the address and the call command.")
             if bridge.serviceRunning {
                 Text(bridge.apiAddress).font(.system(.body, design: .monospaced)).textSelection(.enabled)
                 HStack {
-                    Button("复制地址") { bridge.copyAPIAddress() }
-                    Button("复制令牌") { bridge.copyAPIToken() }
-                    Button("检查 API") { bridge.checkAPI() }.disabled(unavailable)
+                    Button("Copy Address") { bridge.copyAPIAddress() }
+                    Button("Copy Token") { bridge.copyAPIToken() }
+                    Button("Check API") { bridge.checkAPI() }.disabled(unavailable)
                 }
                 Text(bridge.apiExample).font(.system(.caption, design: .monospaced)).textSelection(.enabled)
                     .padding(12).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 8))
-                Button("复制带令牌的调用示例", systemImage: "doc.on.doc") { bridge.copyAPIExample() }
+                Button("Copy token-authenticated call example", systemImage: "doc.on.doc") { bridge.copyAPIExample() }
                 if let verified = bridge.apiVerifiedAt {
-                    Text("最近检查：\(verified.formatted(date: .omitted, time: .standard))").font(.caption).foregroundStyle(.secondary)
+                    Text("Last check: \(verified.formatted(date: .omitted, time: .standard))").font(.caption).foregroundStyle(.secondary)
                 }
             }
-            Text("API 仅供这台 Mac 调用。断开或退出后服务停止；再次连接时请以当前地址和令牌为准。")
+            Text("The API is for this Mac only. The service stops on disconnect or quit; after reconnecting, use the current address and token.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
@@ -211,14 +211,14 @@ private struct DesktopControlView: View {
 
     private var navigationPanel: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("极简字符导航").font(.headline)
-            Text("模拟转向和距离，尚未接入地图或 GPS。").foregroundStyle(.secondary)
+            Text("Minimal character navigation").font(.headline)
+            Text("Simulates turns and distance; no map or GPS yet.").foregroundStyle(.secondary)
             HStack(spacing: 24) {
-                Picker("方向", selection: $direction) {
+                Picker("Direction", selection: $direction) {
                     ForEach(NavigationDirection.allCases) { Text($0.title).tag($0) }
                 }.frame(width: 180)
                 Stepper(value: $meters, in: 0...9990, step: 10) {
-                    Text(meters == 0 ? "现在转向" : "距离：\(meters) 米").monospacedDigit()
+                    Text(meters == 0 ? "Turn now" : "Distance: \(meters) m").monospacedDigit()
                 }
             }
             let cells = NavigationFrame.rows(direction: direction, meters: meters).flatMap { Array($0) }
@@ -227,92 +227,92 @@ private struct DesktopControlView: View {
                     Text(String(cells[index])).font(.system(size: 16, weight: .regular, design: .monospaced)).frame(width: 16, height: 20)
                 }
             }.padding(20).background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 10))
-            Text("20×5 排版预览，实际字体以眼镜为准。").font(.caption).foregroundStyle(.secondary)
+            Text("20×5 layout preview; the glasses render the actual font.").font(.caption).foregroundStyle(.secondary)
             HStack {
-                Button(bridge.activeSession == .navigation ? "更新导航" : "显示导航", systemImage: "paperplane") {
+                Button(bridge.activeSession == .navigation ? "Update navigation" : "Show navigation", systemImage: "paperplane") {
                     bridge.showNavigation(direction: direction, meters: meters)
                 }.buttonStyle(.borderedProminent)
-                Button("重新打开显示") { bridge.showNavigation(direction: direction, meters: meters, reopen: true) }
+                Button("Reopen Display") { bridge.showNavigation(direction: direction, meters: meters, reopen: true) }
             }.disabled(unavailable || bridge.selectedAddress.isEmpty)
-            Text("首行自动对齐：首次显示不修正，后续刷新自动修正。").font(.caption).foregroundStyle(.secondary)
-            Text("在眼镜上手动退出后，使用“重新打开显示”。").font(.caption).foregroundStyle(.secondary)
+            Text("First-row auto-alignment: no correction on first display; later refreshes auto-correct.").font(.caption).foregroundStyle(.secondary)
+            Text("After manually exiting on the glasses, use \"Reopen Display\".").font(.caption).foregroundStyle(.secondary)
         }
     }
 
     private var textPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Picker("显示页面", selection: $usePrompt) {
-                Text("实时字幕").tag(false)
-                Text("实时提示").tag(true)
+            Picker("Display page", selection: $usePrompt) {
+                Text("Live captions").tag(false)
+                Text("Live prompts").tag(true)
             }.pickerStyle(.segmented).frame(maxWidth: 340)
-            Text(usePrompt ? "提示标题" : "显示文字").font(.headline)
+            Text(usePrompt ? "Prompt title" : "Text to display").font(.headline)
             editor($caption, height: usePrompt ? 80 : 170)
             if usePrompt {
-                Text("回答正文").font(.headline)
+                Text("Answer body").font(.headline)
                 editor($answer, height: 120)
-                Text(bridge.builtInMicrophonesReady ? "实时提示默认同时转送两路麦克风，更新回答不会中断音频。" : "安装内置驱动后，实时提示会同时转送两路麦克风。").font(.caption).foregroundStyle(.secondary)
+                Text(bridge.builtInMicrophonesReady ? "Live Prompts relays both microphones by default; updating the answer does not interrupt audio." : "After installing the built-in driver, Live Prompts relays both microphones.").font(.caption).foregroundStyle(.secondary)
             }
             HStack {
-                Button("发送到眼镜", systemImage: "paperplane") { bridge.showText(caption, translation: answer, prompt: usePrompt) }
+                Button("Send to Glasses", systemImage: "paperplane") { bridge.showText(caption, translation: answer, prompt: usePrompt) }
                     .buttonStyle(.borderedProminent)
-                Button("重新打开显示") { bridge.showText(caption, translation: answer, prompt: usePrompt, reopen: true) }
+                Button("Reopen Display") { bridge.showText(caption, translation: answer, prompt: usePrompt, reopen: true) }
             }.disabled(unavailable || caption.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || bridge.selectedAddress.isEmpty)
         }
     }
 
     private var videoPanel: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("把本地视频变成眼镜上的字符动画").font(.headline)
-            Text("可用 Bad Apple 等黑白剪影视频。使用 26×7 全角字符格，无声播放；首版支持最长 10 分钟。").foregroundStyle(.secondary)
+            Text("Turn local video into character animation on the glasses").font(.headline)
+            Text("Works with black-and-white silhouette videos such as Bad Apple. Uses 26×7 full-width character cells, silent playback; the initial version supports up to 10 minutes.").foregroundStyle(.secondary)
             HStack {
-                Button("选择视频…", systemImage: "folder") { bridge.chooseVideo() }
+                Button("Choose Video…", systemImage: "folder") { bridge.chooseVideo() }
                     .disabled(unavailable || bridge.videoImporting || bridge.videoPlaying)
                 if bridge.videoImporting {
                     ProgressView().controlSize(.small)
-                    Button("取消解码") { bridge.cancelVideoImport() }
+                    Button("Cancel Decode") { bridge.cancelVideoImport() }
                 }
-                Button("检查字符对齐") { bridge.showVideoAlignment() }
+                Button("Check Character Alignment") { bridge.showVideoAlignment() }
                     .disabled(unavailable || bridge.selectedAddress.isEmpty)
-                Button("结束显示", systemImage: "stop.fill") { bridge.stopSession() }
+                Button("End Display", systemImage: "stop.fill") { bridge.stopSession() }
                     .disabled(unavailable || bridge.activeSession != .video)
             }
-            Text("对齐标尺包含方块、空白、全角字母和标点。先确认七行左右竖线对齐，再播放视频。").font(.caption).foregroundStyle(.secondary)
+            Text("The alignment ruler contains blocks, blanks, full-width letters, and punctuation. Confirm that the left and right lines of the seven rows align before playing the video.").font(.caption).foregroundStyle(.secondary)
             if let video = bridge.textVideo {
-                Text("\(video.name) · \(Int(video.duration)) 秒").textSelection(.enabled)
+                Text("\(video.name) · \(Int(video.duration)) s").textSelection(.enabled)
                 HStack {
-                    Picker("字符", selection: $videoStyle) {
+                    Picker("Characters", selection: $videoStyle) {
                         ForEach(TextVideoStyle.allCases) { Text($0.rawValue).tag($0) }
                     }.frame(width: 250)
-                    Picker("帧率", selection: $videoFPS) {
-                        Text("5 帧/秒").tag(5)
-                        Text("10 帧/秒").tag(10)
+                    Picker("Frame rate", selection: $videoFPS) {
+                        Text("5 fps").tag(5)
+                        Text("10 fps").tag(10)
                     }.frame(width: 170)
                 }.disabled(bridge.videoPlaying)
-                Toggle("黑白反转", isOn: $invertVideo).disabled(bridge.videoPlaying)
-                Toggle("增强对比度", isOn: $enhanceVideoContrast).disabled(bridge.videoPlaying)
-                Toggle("后续刷新时首行补一格", isOn: $alignVideoUpdates).disabled(bridge.videoPlaying)
-                Text("全角灰度按区域亮度选择字符，用全角空格占位。亮度以苹方字体校准，眼镜上的字形和对齐仍以标尺实测为准。").font(.caption).foregroundStyle(.secondary)
+                Toggle("Invert black & white", isOn: $invertVideo).disabled(bridge.videoPlaying)
+                Toggle("Boost contrast", isOn: $enhanceVideoContrast).disabled(bridge.videoPlaying)
+                Toggle("Pad first row by one cell on refresh", isOn: $alignVideoUpdates).disabled(bridge.videoPlaying)
+                Text("Full-width grayscale picks characters by region brightness, using full-width spaces as blanks. Brightness is calibrated for the PingFang font; glyphs and alignment on the glasses follow the ruler.").font(.caption).foregroundStyle(.secondary)
                 let preview = bridge.videoSeconds > 0 || bridge.videoPlaying ? bridge.videoPreview : video.frames[0].text(style: videoStyle, inverted: invertVideo, enhanceContrast: enhanceVideoContrast)
                 Text(preview).font(.custom("PingFangSC-Regular", size: 14)).lineSpacing(0)
                     .padding(16).background(Color.primary.opacity(0.045), in: RoundedRectangle(cornerRadius: 8))
                 ProgressView(value: min(bridge.videoSeconds, video.duration), total: video.duration)
-                Text("\(Int(bridge.videoSeconds)) / \(Int(video.duration)) 秒").font(.caption).monospacedDigit()
+                Text("\(Int(bridge.videoSeconds)) / \(Int(video.duration)) s").font(.caption).monospacedDigit()
                 HStack {
-                    Button("从头播放到眼镜", systemImage: "play.fill") {
+                    Button("Play from start on glasses", systemImage: "play.fill") {
                         bridge.playVideo(style: videoStyle, fps: videoFPS, inverted: invertVideo, alignUpdates: alignVideoUpdates, enhanceContrast: enhanceVideoContrast)
                     }.buttonStyle(.borderedProminent)
                         .disabled(unavailable || bridge.videoImporting || bridge.videoPlaying || bridge.selectedAddress.isEmpty)
                 }
-                Text("连接跟不上时会跳帧，不积压追赶。播放结束后保留最后发送的画面；点击“结束显示”退出。").font(.caption).foregroundStyle(.secondary)
+                Text("Frames are skipped when the link cannot keep up — no backlog. After playback the last frame sent stays on the glasses; click \"End Display\" to exit.").font(.caption).foregroundStyle(.secondary)
             }
         }
     }
 
     private var notificationPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TextField("通知标题", text: $notificationTitle).textFieldStyle(.roundedBorder)
+            TextField("Notification title", text: $notificationTitle).textFieldStyle(.roundedBorder)
             editor($notificationBody, height: 150)
-            Button("发送通知", systemImage: "bell.badge") { bridge.notify(title: notificationTitle, body: notificationBody) }
+            Button("Send Notification", systemImage: "bell.badge") { bridge.notify(title: notificationTitle, body: notificationBody) }
                 .buttonStyle(.borderedProminent)
                 .disabled(unavailable || notificationBody.isEmpty || bridge.selectedAddress.isEmpty)
         }
@@ -320,38 +320,38 @@ private struct DesktopControlView: View {
 
     private var teleprompterPanel: some View {
         VStack(alignment: .leading, spacing: 12) {
-            TextField("稿件标题", text: $scriptTitle).textFieldStyle(.roundedBorder)
+            TextField("Script title", text: $scriptTitle).textFieldStyle(.roundedBorder)
             editor($scriptText, height: 220)
-            Picker("滚动速度", selection: $scriptSpeed) {
+            Picker("Scroll speed", selection: $scriptSpeed) {
                 Text("60").tag(60)
                 Text("120").tag(120)
             }.frame(width: 180)
             HStack {
-                Button("发送并播放", systemImage: "play.fill") { bridge.startTeleprompter(title: scriptTitle, text: scriptText, speed: scriptSpeed) }
+                Button("Send & Play", systemImage: "play.fill") { bridge.startTeleprompter(title: scriptTitle, text: scriptText, speed: scriptSpeed) }
                     .buttonStyle(.borderedProminent).disabled(scriptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || bridge.selectedAddress.isEmpty)
-                Button("暂停") { bridge.controlTeleprompter("pause") }.disabled(bridge.activeSession != .teleprompter)
-                Button("继续") { bridge.controlTeleprompter("resume") }.disabled(bridge.activeSession != .teleprompter)
+                Button("Pause") { bridge.controlTeleprompter("pause") }.disabled(bridge.activeSession != .teleprompter)
+                Button("Resume") { bridge.controlTeleprompter("resume") }.disabled(bridge.activeSession != .teleprompter)
             }.disabled(unavailable)
         }
     }
 
     private var audioPanel: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("直接使用眼镜麦克风").font(.headline)
-            Text("本地识别中文或英文；录音保存为双声道 WAV。开始后会替换当前实时提示会话。")
+            Text("Use the glasses microphone directly").font(.headline)
+            Text("Recognizes Chinese or English locally; recordings are saved as two-channel WAV. Starting replaces the current Live Prompts session.")
                 .font(.callout).foregroundStyle(.secondary)
             HStack(spacing: 24) {
-                Picker("识别语言", selection: $locale) { Text("中文").tag("zh-CN"); Text("English").tag("en-US") }.frame(width: 200)
-                Picker("时长", selection: $audioDuration) { Text("1 分钟").tag(60); Text("3 分钟").tag(180); Text("5 分钟").tag(300); Text("10 分钟").tag(600) }.frame(width: 180)
+                Picker("Language", selection: $locale) { Text("Chinese").tag("zh-CN"); Text("English").tag("en-US") }.frame(width: 200)
+                Picker("Duration", selection: $audioDuration) { Text("1 minute").tag(60); Text("3 minutes").tag(180); Text("5 minutes").tag(300); Text("10 minutes").tag(600) }.frame(width: 180)
             }
-            Toggle("识别时同时保存录音", isOn: $saveAudio)
+            Toggle("Also save the recording while recognizing", isOn: $saveAudio)
             HStack {
-                Button("开始语音识别", systemImage: "waveform") { bridge.startAudio(recognize: true, record: saveAudio, duration: audioDuration, locale: locale) }
+                Button("Start Speech Recognition", systemImage: "waveform") { bridge.startAudio(recognize: true, record: saveAudio, duration: audioDuration, locale: locale) }
                     .buttonStyle(.borderedProminent)
-                Button("仅录音", systemImage: "record.circle") { bridge.startAudio(recognize: false, record: true, duration: audioDuration, locale: locale) }
+                Button("Record Only", systemImage: "record.circle") { bridge.startAudio(recognize: false, record: true, duration: audioDuration, locale: locale) }
             }.disabled(unavailable || bridge.selectedAddress.isEmpty || (bridge.activeSession == .asr || bridge.activeSession == .recording))
             if bridge.activeSession?.isAudio == true || bridge.audioSeconds > 0 {
-                Text(String(format: "已接收 %.1f 秒音频", bridge.audioSeconds)).monospacedDigit()
+                Text(String(format: "Audio received: %.1f s", bridge.audioSeconds)).monospacedDigit()
             }
             if !bridge.transcript.isEmpty {
                 Text(bridge.transcript).textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading)
@@ -359,83 +359,83 @@ private struct DesktopControlView: View {
             }
             if let path = bridge.recordingPath {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(bridge.recordingFinalized ? "录音已保存" : "正在写入录音文件").font(.headline)
+                    Text(bridge.recordingFinalized ? "Recording saved" : "Writing recording file").font(.headline)
                     Text(path).font(.caption).textSelection(.enabled).foregroundStyle(.secondary)
                     HStack {
-                        Button("在 Finder 中显示") { bridge.revealRecording() }
-                        Button("播放录音") { bridge.playRecording() }.disabled(!bridge.recordingFinalized)
+                        Button("Show in Finder") { bridge.revealRecording() }
+                        Button("Play Recording") { bridge.playRecording() }.disabled(!bridge.recordingFinalized)
                     }
                 }
             }
             Divider()
-            Text("全天智记音频（实验）").font(.headline)
-            Text("按上方时长自动停止，可保存音频后回放。当前真机收到的是单声道，暂不替换两路虚拟麦克风；没有人声时可能不上传音频。")
+            Text("All-day log audio (experimental)").font(.headline)
+            Text("Stops automatically after the duration above; audio can be saved and replayed. Current hardware delivers mono and does not replace the two virtual microphones yet; audio may not upload when no voice is present.")
                 .font(.callout).foregroundStyle(.secondary)
-            Toggle("保存单声道 WAV 用于回放", isOn: $saveLifeLogAudio)
+            Toggle("Save mono WAV for playback", isOn: $saveLifeLogAudio)
                 .disabled(bridge.activeSession == .lifeLog)
             HStack {
-                Button("开始全天智记采集") { bridge.startLifeLog(duration: audioDuration, record: saveLifeLogAudio) }
+                Button("Start all-day log capture") { bridge.startLifeLog(duration: audioDuration, record: saveLifeLogAudio) }
                     .disabled(unavailable || bridge.selectedAddress.isEmpty || bridge.activeSession == .lifeLog)
-                Button("触发一轮音频") { bridge.triggerLifeLogAudio() }
+                Button("Trigger one audio round") { bridge.triggerLifeLogAudio() }
                     .disabled(unavailable || bridge.activeSession != .lifeLog)
-                Button("停止全天智记") { bridge.stopSession() }
+                Button("Stop all-day log") { bridge.stopSession() }
                     .disabled(unavailable || bridge.activeSession != .lifeLog)
             }
             if bridge.activeSession == .lifeLog || bridge.lifeLogSeconds > 0 {
-                Text(String(format: "已解码 %.1f 秒音频", bridge.lifeLogSeconds)).monospacedDigit()
+                Text(String(format: "Audio decoded: %.1f s", bridge.lifeLogSeconds)).monospacedDigit()
                 Text(bridge.lifeLogChannels).font(.callout)
                 if bridge.lifeLogDecodeErrors > 0 {
-                    Text("解码失败：\(bridge.lifeLogDecodeErrors) 帧").foregroundStyle(.orange)
+                    Text("Decode failed: \(bridge.lifeLogDecodeErrors) frames").foregroundStyle(.orange)
                 }
             }
-            Text("声道 1：骨传导麦，采集自己。声道 2：前向麦，采集他人。当前 ASR 混合识别两路声音。")
+            Text("Channel 1: bone-conduction mic, captures your own voice. Channel 2: forward mic, captures others. ASR currently recognizes both channels mixed.")
                 .font(.caption).foregroundStyle(.secondary)
         }
     }
 
     private var microphoneSettings: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("眼镜麦克风").font(.headline)
-            Text("连接后默认开启两路麦克风，并进入实时提示页；问题与回答可同时显示。")
+            Text("Glasses microphone").font(.headline)
+            Text("After connecting, both microphones turn on by default and the Live Prompts page opens; question and answer can be shown together.")
                 .font(.callout).foregroundStyle(.secondary)
             HStack {
-                Label(bridge.builtInMicrophonesReady ? "两路内置麦克风已就绪" : "尚未安装内置麦克风", systemImage: bridge.builtInMicrophonesReady ? "checkmark.circle" : "mic")
-                Button("刷新设备") { bridge.refreshVirtualAudioDevices() }
+                Label(bridge.builtInMicrophonesReady ? "Both built-in microphones ready" : "Built-in microphone not installed", systemImage: bridge.builtInMicrophonesReady ? "checkmark.circle" : "mic")
+                Button("Refresh Devices") { bridge.refreshVirtualAudioDevices() }
                     .disabled(unavailable || bridge.microphoneForwarding)
-                Button(bridge.builtInMicrophonesReady ? "重新安装驱动…" : "安装内置驱动…") {
+                Button(bridge.builtInMicrophonesReady ? "Reinstall Driver…" : "Install Built-in Driver…") {
                     bridge.openVirtualMicrophoneInstaller()
                 }.disabled(unavailable || bridge.activeSession?.isAudio == true)
             }
-            Picker("麦克风自动停止", selection: $bridge.microphoneDuration) {
-                Text("10 分钟").tag(600)
-                Text("1 小时").tag(3_600)
-                Text("6 小时").tag(21_600)
+            Picker("Microphone auto-stop", selection: $bridge.microphoneDuration) {
+                Text("10 minutes").tag(600)
+                Text("1 hour").tag(3_600)
+                Text("6 hours").tag(21_600)
             }.frame(width: 280).disabled(bridge.microphoneForwarding)
-            Text("OpenRayneo Microphone Channel 1：自己的声音；Channel 2：前方声音。")
+            Text("OpenRayneo Microphone Channel 1: your own voice; Channel 2: sounds in front of you.")
                 .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
             HStack {
-                Button("打开声音设置") { bridge.openSoundSettings() }
-                Button("恢复音频输出") { bridge.recoverMicrophoneOutput() }
+                Button("Open Sound Settings") { bridge.openSoundSettings() }
+                Button("Restore Audio Output") { bridge.recoverMicrophoneOutput() }
                     .disabled(unavailable || bridge.activeSession != .prompts || !bridge.microphoneForwarding)
                 if bridge.microphoneForwarding {
-                    Text(bridge.microphoneRecovering ? "音频设备暂不可用，正在恢复" : bridge.microphoneAudioState == "waiting" ? "等待眼镜上传音频，页面保持开启" : "正在转送两路声音").font(.caption).foregroundStyle(.secondary)
+                    Text(bridge.microphoneRecovering ? "Audio devices unavailable, recovering" : bridge.microphoneAudioState == "waiting" ? "Waiting for the glasses to upload audio; page stays open" : "Relaying both audio channels").font(.caption).foregroundStyle(.secondary)
                 }
             }
-            Text("进入失败或在眼镜上退出后，点击左侧“进入／重新进入麦克风模式”。切换系统声音设备会自动恢复输出，保留眼镜页面；也可手动恢复音频输出。转送不录音、不识别；切换到字幕、视频或提词器会暂停转送。达到自动停止时长或点击“结束当前功能”才正常结束。")
+            Text("If entering fails or you exit on the glasses, click \"Enter / Re-enter Microphone Mode\" on the left. Switching system audio devices restores output automatically and keeps the glasses page; you can also restore audio output manually. Relaying neither records nor recognizes; switching to captions, video, or the teleprompter pauses it. It ends normally at the auto-stop time or when you click \"End session\".")
                 .font(.caption).foregroundStyle(.secondary)
         }.onAppear { bridge.refreshVirtualAudioDevices() }
     }
 
     private var connectionHelp: some View {
-        DisclosureGroup("连接帮助与诊断") {
+        DisclosureGroup("Connection help & diagnostics") {
             VStack(alignment: .leading, spacing: 10) {
-                Text("首次使用：让眼镜进入配对模式，点击“添加并配对眼镜”。应用会先清除目标眼镜在 Mac 上的旧配对，确认未配对、未连接后再建立新配对。")
-                Text("已有配对日常使用请选择“连接眼镜”。需要重新配对时，让眼镜进入配对模式，再点击“添加并配对眼镜”；若系统不支持自动清除，再按错误提示手动忽略。")
-                Button("打开系统蓝牙设置") { bridge.openBluetoothSettings() }
-                if let pid = bridge.serviceProcessID { Text("连接服务进程：\(pid)").textSelection(.enabled) }
+                Text("First use: put the glasses in pairing mode and click \"Add & Pair Glasses\". The app first removes the glasses old Mac pairing, confirms they are unpaired and disconnected, then creates a new pairing.")
+                Text("For everyday use with an existing pairing, choose \"Connect Glasses\". To re-pair, put the glasses in pairing mode and click \"Add & Pair Glasses\"; if the system cannot auto-remove the old pairing, remove it manually as the error suggests.")
+                Button("Open Bluetooth Settings") { bridge.openBluetoothSettings() }
+                if let pid = bridge.serviceProcessID { Text("Connection service PID: \(pid)").textSelection(.enabled) }
                 if !bridge.apiAddress.isEmpty {
-                    Text("本机 API：\(bridge.apiAddress)").textSelection(.enabled)
-                    Button("复制 API 令牌") { bridge.copyAPIToken() }
+                    Text("Local API: \(bridge.apiAddress)").textSelection(.enabled)
+                    Button("Copy API Token") { bridge.copyAPIToken() }
                 }
                 if !bridge.diagnostics.isEmpty { Text(bridge.diagnostics).font(.system(.caption, design: .monospaced)).textSelection(.enabled) }
             }.font(.callout).foregroundStyle(.secondary).padding(.top, 8).frame(maxWidth: .infinity, alignment: .leading)
@@ -457,16 +457,16 @@ private final class DesktopApplicationDelegate: NSObject, NSApplicationDelegate 
         let menu = NSMenu()
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "退出 OpenRayneo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        appMenu.addItem(withTitle: "Quit OpenRayneo", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         menu.addItem(appItem)
         let editItem = NSMenuItem()
-        let editMenu = NSMenu(title: "编辑")
-        editMenu.addItem(withTitle: "撤销", action: Selector(("undo:")), keyEquivalent: "z")
-        editMenu.addItem(withTitle: "剪切", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
-        editMenu.addItem(withTitle: "复制", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
-        editMenu.addItem(withTitle: "粘贴", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
-        editMenu.addItem(withTitle: "全选", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
+        let editMenu = NSMenu(title: "Edit")
+        editMenu.addItem(withTitle: "Undo", action: Selector(("undo:")), keyEquivalent: "z")
+        editMenu.addItem(withTitle: "Cut", action: #selector(NSText.cut(_:)), keyEquivalent: "x")
+        editMenu.addItem(withTitle: "Copy", action: #selector(NSText.copy(_:)), keyEquivalent: "c")
+        editMenu.addItem(withTitle: "Paste", action: #selector(NSText.paste(_:)), keyEquivalent: "v")
+        editMenu.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         editItem.submenu = editMenu
         menu.addItem(editItem)
         NSApp.mainMenu = menu

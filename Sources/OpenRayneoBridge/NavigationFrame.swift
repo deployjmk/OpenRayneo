@@ -8,10 +8,10 @@ enum NavigationDirection: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .left: return "左转"
-        case .right: return "右转"
-        case .straight: return "直行"
-        case .uturn: return "掉头"
+        case .left: return "Left"
+        case .right: return "Right"
+        case .straight: return "Straight"
+        case .uturn: return "U-turn"
         }
     }
 
@@ -34,7 +34,7 @@ enum NavigationFrame {
         }
         for (row, text) in direction.arrow.enumerated() { put(text, x: 2, y: row) }
         let distance = max(0, min(meters, 9999))
-        put(distance == 0 ? "现在" : "\(distance)米", x: 12, y: 1)
+        put(distance == 0 ? "Now" : "\(distance)m", x: 12, y: 1)
         put(direction.title, x: 12, y: 3)
         return cells.map { row in
             String(row.map { character in
