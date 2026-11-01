@@ -24,3 +24,11 @@ jobs:
         run: |
           plutil -lint OpenRayneoBridge.app/Contents/Info.plist
           test -x OpenRayneoBridge.app/Contents/MacOS/openrayneo-bridge
+      - name: Package release zip
+        run: |
+          OPENRAYNEO_SIGNING_IDENTITY=- sh scripts/package-release.sh
+          ls -la .build/distributions/*/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenRayneo-release-macos
+          path: .build/distributions/*/OpenRayneo-*.zip
